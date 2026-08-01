@@ -91,7 +91,8 @@ start()
 
 //Rotas
 app.post('/sessions', SessionController.create);
-app.get('/user-list', UserController.listAll);
+app.post('/register', UserController.register);
+// app.get('/user-list', UserController.listAll);
 app.post('/meeting-create', MeetingController.store);
 app.get('/meeting-list', MeetingController.index);
 app.put('/meeting-update/:id', MeetingController.update)

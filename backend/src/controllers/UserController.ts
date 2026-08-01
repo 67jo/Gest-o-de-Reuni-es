@@ -1,60 +1,25 @@
+import dotenv from "dotenv"
+dotenv.config()
+
 import { type FastifyRequest, type FastifyReply } from 'fastify';
-import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { UserModel } from '../models/UserModels.js';
+import {user} from "../models/UserModels.js"
 import { db } from '../database.js';
+import { userSchema } from '../validations/user-validation.js';
 
 export const UserController = {
   // Criar novo usuário (Sign Up)
-  async register(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      const userSchema = z.object({
-        nome_completo: z.string().min(3),
-        numero: z.number(),
-        email: z.string().email(),
-        password: z.string().min(6),
-        departamento: z.string()
-      });
+  async register(req: FastifyRequest, res: FastifyReply) {
+    const {name, email, password} = userSchema.parse(req.body)
+    const salt_key = process.env.SALT_KEY 
 
-      const data = userSchema.parse(request.body);
+    if(!salt_key) return
 
-      // Verificar se o email já existe
-      const userExists = await UserModel.findByEmail(data.email);
-      if (userExists) {
-        return reply.status(400).send({ message: 'Este e-mail já está em uso.' });
-      }
+    const hashPass = await bcrypt.hash(password, salt_key)
+    await user.create({name, email, password:hashPass})
 
-      // Criptografar a senha
-      const hashedPassword = await bcrypt.hash(data.password, 8);
-
-      // Salvar no Banco
-      await UserModel.create({
-        ...data,
-        password: hashedPassword
-      });
-
-      return reply.status(201).send({ message: 'Usuário criado com sucesso!' });
-
-    } catch (error: any) {
-      console.error("❌ Erro no Registro:", error);
-      if (error instanceof z.ZodError) {
-        return reply.status(400).send(error.flatten().fieldErrors);
-      }
-      return reply.status(500).send({ message: 'Erro interno no servidor' });
-    }
+    return res.send({msg:"criado com sucesso"})
   },
 
-  // Listar todos os usuários (útil para o Modal de Nova Reunião)
-  async listAll(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      // 2. Use o 'db' diretamente, não através do 'UserModel'
-      const users = await db('users')
-        .select('id', 'nome_completo', 'departamento', 'email');
-        
-      return reply.send(users);
-    } catch (error) {
-      console.error("Erro ao listar usuários:", error);
-      return reply.status(500).send({ message: 'Erro ao buscar usuários' });
-    }
-  }
+  
 };
