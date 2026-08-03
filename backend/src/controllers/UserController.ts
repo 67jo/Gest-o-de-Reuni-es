@@ -3,8 +3,7 @@ dotenv.config()
 
 import { type FastifyRequest, type FastifyReply } from 'fastify';
 import bcrypt from 'bcryptjs';
-import {user} from "../models/UserModels.js"
-import { db } from '../database.js';
+import { user } from "../models/UserModels.js"
 import { userSchema } from '../validations/user-validation.js';
 
 export const UserController = {
