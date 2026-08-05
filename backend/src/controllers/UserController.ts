@@ -10,7 +10,7 @@ export const UserController = {
   // Criar novo usuário (Sign Up)
   async register(req: FastifyRequest, res: FastifyReply) {
     const {name, email, password} = userSchema.parse(req.body)
-    const salt_key = process.env.SALT_KEY 
+    const salt_key = Number(process.env.SALT_KEY) 
 
     if(!salt_key) return
 
