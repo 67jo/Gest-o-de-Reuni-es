@@ -1,9 +1,9 @@
-import "dotenv/config"
-import Fastify from "fastify"
-import cors from "@fastify/cors"
-import jwt from "@fastify/jwt"
-import { userRoutes } from "./routes/user.route"
-
+import "dotenv/config";
+import Fastify from "fastify";
+import cors from "@fastify/cors";
+import jwt from "@fastify/jwt";
+import { userRoutes } from "./routes/user.route";
+import cookie from "@fastify/cookie";
 
 
 export function createApp(){
@@ -18,6 +18,8 @@ export function createApp(){
   app.register(jwt,{
     secret:process.env.SECRET_JWT || "SECRET"
   })
+
+  app.register(cookie)
 
   app.register(userRoutes,{
     prefix:"/user"

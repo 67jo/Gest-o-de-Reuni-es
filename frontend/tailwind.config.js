@@ -1,10 +1,32 @@
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,tsx,jsx}"],
+
   theme: {
     extend: {
       colors: {
+        // =========================================================
+        // Shadcn base tokens
+        // =========================================================
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
+        foreground: "var(--foreground)",
+
+        card: {
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
+        },
+
+        popover: {
+          DEFAULT: "var(--popover)",
+          foreground: "var(--popover-foreground)",
+        },
+
+        // =========================================================
         // Brand & Primary
+        // =========================================================
         primary: "#00457a",
         "primary-container": "#285d93",
         "on-primary": "#ffffff",
@@ -14,7 +36,9 @@ export default {
         "on-primary-fixed-variant": "#07497d",
         "inverse-primary": "#a0c9ff",
 
+        // =========================================================
         // Secondary & Tertiary
+        // =========================================================
         secondary: "#515f74",
         "secondary-container": "#d5e3fc",
         "on-secondary": "#ffffff",
@@ -23,7 +47,7 @@ export default {
         "secondary-fixed-dim": "#b9c7df",
         "on-secondary-fixed": "#0d1c2e",
         "on-secondary-fixed-variant": "#3a485b",
-        
+
         tertiary: "#7b2600",
         "tertiary-container": "#a33500",
         "on-tertiary": "#ffffff",
@@ -33,7 +57,9 @@ export default {
         "on-tertiary-fixed": "#380d00",
         "on-tertiary-fixed-variant": "#812800",
 
+        // =========================================================
         // Surface & Background
+        // =========================================================
         background: "#f7f9fb",
         "on-background": "#191c1e",
         surface: "#f7f9fb",
@@ -43,8 +69,10 @@ export default {
         "surface-bright": "#f7f9fb",
         "surface-dim": "#d8dadc",
         "surface-tint": "#2d6197",
-        
+
+        // =========================================================
         // Surface Containers
+        // =========================================================
         "surface-container-lowest": "#ffffff",
         "surface-container-low": "#f2f4f6",
         "surface-container": "#eceef0",
@@ -53,7 +81,9 @@ export default {
         "inverse-surface": "#2d3133",
         "inverse-on-surface": "#eff1f3",
 
+        // =========================================================
         // Utility & Feedback
+        // =========================================================
         outline: "#737685",
         "outline-variant": "#c3c6d6",
         error: "#ba1a1a",
@@ -61,15 +91,22 @@ export default {
         "on-error": "#ffffff",
         "on-error-container": "#93000a",
       },
+
+      // ===========================================================
+      // Tipografia
+      // ===========================================================
       fontFamily: {
-        // Mapeado conforme as classes usadas no seu HTML
         headline: ["Manrope", "sans-serif"],
         body: ["Inter", "sans-serif"],
         label: ["Inter", "sans-serif"],
-        // Fallbacks para os nomes que você já tinha
+
         manrope: ["Manrope", "sans-serif"],
         inter: ["Inter", "sans-serif"],
       },
+
+      // ===========================================================
+      // Border Radius
+      // ===========================================================
       borderRadius: {
         DEFAULT: "0.25rem",
         lg: "0.5rem",
@@ -78,8 +115,9 @@ export default {
       },
     },
   },
+
   plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/container-queries'),
+    require("@tailwindcss/forms"),
+    require("@tailwindcss/container-queries"),
   ],
-}
+};

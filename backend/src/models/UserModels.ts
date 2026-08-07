@@ -1,8 +1,9 @@
-import { prisma } from "../config/prisma"
+import { prisma } from "../config/prisma";
 
 class User {
+  protected model = prisma.user
  async create(data:UserType){
-    return await prisma.user.create({
+    return await this.model.create({
       data:{
         ...data
       },select:{
@@ -12,6 +13,11 @@ class User {
       }
     })
   }
+  async getByEmail(email:string){
+    return await this.model.findFirst({
+      where:{email}
+    });    
+  }
 }
 
-export const user = new User()
+export const userModel = new User()

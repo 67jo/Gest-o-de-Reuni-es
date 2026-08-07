@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, ShieldCheck, Loader2 } from 'lucide-react';
-import { ErrorFormAlert } from '../components/errorForm';
+import { ErrorFormAlert } from '../components/errorForm'
 import { userServices } from '../services/user.services';
-import { toast } from 'sonner';
 
 // Se estiver usando o React Router para navegar após o login:
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-const LoginPage: React.FC = () => {
+const RegisterPage: React.FC = () => {
   // --- ESTADOS ---
   const [email, setEmail] = useState<string>("");
+  const [name, setName] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,10 +25,11 @@ const LoginPage: React.FC = () => {
 
     try {
       // Chamada ao serviço que conecta com o Fastify + MySQL
-      const data = await userServices.login({ email, password });
-      console.log(data)
-      navigate('/dashboard'); 
-      toast.success(data.msg, {className:"rounded-xl"})
+      const data = await userServices.register({ name, email, password });
+
+      // Feedback visual e Redirecionamento
+      alert(`Bem-vindo de volta, ${data.name}!`);
+      navigate('/'); 
       
     } catch (err: any) {
       // Tratamento de erro vindo do backend (ex: senha incorreta ou usuário inexistente)
@@ -91,10 +92,29 @@ const LoginPage: React.FC = () => {
                   <input
                     className="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border border-outline/20 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 outline-none text-on-surface placeholder:text-outline-variant/50"
                     id="email"
-                    type="input"
+                    type="email"
                     placeholder="exemplo@empresa.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Name */}
+              <div>
+                <label className="block text-xs font-label font-semibold text-secondary uppercase tracking-widest mb-2" htmlFor="email">
+                  Nome do funcionário
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant w-5 h-5" />
+                  <input
+                    className="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border border-outline/20 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 outline-none text-on-surface placeholder:text-outline-variant/50"
+                    id="name"
+                    type="text"
+                    placeholder="nome..."
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     required
                   />
                 </div>
@@ -163,8 +183,8 @@ const LoginPage: React.FC = () => {
 
             <div className="mt-8 pt-8 border-t border-outline/5 text-center">
               <p className="text-sm text-on-surface-variant">
-                É a primeira vez no sistema?{' '}
-                <Link className="text-primary font-bold hover:underline" to={"/register"}>Cadastre-se</Link>
+                Dificuldades no acesso?{' '}
+                <a className="text-primary font-bold hover:underline" href="#suporte">Falar com TI</a>
               </p>
             </div>
           </div>
@@ -192,4 +212,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;

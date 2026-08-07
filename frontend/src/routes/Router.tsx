@@ -7,6 +7,7 @@ import { PrivateRoute } from "./private"
 import { PublicRoute } from "./public"
 import { Navigate } from 'react-router-dom';
 import { PrivateLayout } from "../layouts/PrivateLayout";
+import RegisterPage from "../pages/RegisterPage"
 
 
 // Crie o cliente fora do componente
@@ -23,6 +24,15 @@ function Router(){
                         element={
                             <PublicRoute>
                                 <LoginPage />
+                            </PublicRoute>
+                        } 
+                    />
+
+                    <Route 
+                        path="/register" 
+                        element={
+                            <PublicRoute>
+                                <RegisterPage  />
                             </PublicRoute>
                         } 
                     />

@@ -3,7 +3,7 @@ dotenv.config()
 
 import { type FastifyRequest, type FastifyReply } from 'fastify';
 import bcrypt from 'bcryptjs';
-import { user } from "../models/UserModels.js"
+import { userModel } from "../models/UserModels.js"
 import { userSchema } from '../validations/user-validation.js';
 
 export const UserController = {
@@ -15,7 +15,7 @@ export const UserController = {
     if(!salt_key) return
 
     const hashPass = await bcrypt.hash(password, salt_key)
-    await user.create({name, email, password:hashPass})
+    await userModel.create({name, email, password:hashPass})
 
     return res.send({msg:"criado com sucesso"})
   },
