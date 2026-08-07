@@ -1,7 +1,19 @@
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+
 
 
 export const PublicRoute = ({ children }: { children: JSX.Element }) => {
-    const token = localStorage.getItem('@ExecutiveLens:token');
-    return !token ? children : <Navigate to="/dashboard" replace />;
+    const { user, loading } = useAuth()
+
+
+    if(!loading){
+        return <p>Carregando...</p>
+    }
+
+    if(user){
+        return <Navigate to={"/dashboard"} replace/>
+    }
+
+    return children
 };

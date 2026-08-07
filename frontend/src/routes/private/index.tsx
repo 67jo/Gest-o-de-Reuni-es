@@ -1,9 +1,19 @@
+import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
+
 
 // Este componente verifica se o usuário está autenticado
 export const PrivateRoute = ({ children }: { children: JSX.Element }) => {
-  const token = localStorage.getItem('@ExecutiveLens:token');
-  
-  // Se não tem token, redireciona para o login (/)
-  return token ? children : <Navigate to="/" replace />;
+    const {user, loading} = useAuth()
+
+
+    if(!loading){
+      return <p>carregando...</p>
+    }
+
+    if(!user){
+      return <Navigate to={"/login"} replace/>
+    }
+
+    return children
 };
