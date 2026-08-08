@@ -18,6 +18,17 @@ class User {
       where:{email}
     });    
   }
+
+  async getById(id:number){
+    return await this.model.findUnique({
+      where:{id},
+      select:{
+        id:true,
+        name:true,
+        email:true
+      }
+    })
+  }
 }
 
 export const userModel = new User()

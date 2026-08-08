@@ -3,6 +3,7 @@ import { Mail, Lock, Eye, EyeOff, ShieldCheck, Loader2 } from 'lucide-react';
 import { ErrorFormAlert } from '../components/errorForm';
 import { userServices } from '../services/user.services';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 // Se estiver usando o React Router para navegar após o login:
 import { Link, useNavigate } from 'react-router-dom';
@@ -15,6 +16,8 @@ const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const {refreshUserData} = useAuth()
+
   const navigate = useNavigate();
 
   // --- LÓGICA DE SUBMISSÃO ---
@@ -26,7 +29,7 @@ const LoginPage: React.FC = () => {
     try {
       // Chamada ao serviço que conecta com o Fastify + MySQL
       const data = await userServices.login({ email, password });
-      console.log(data)
+      await refreshUserData()
       navigate('/dashboard'); 
       toast.success(data.msg, {className:"rounded-xl"})
       

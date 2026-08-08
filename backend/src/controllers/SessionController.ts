@@ -22,12 +22,14 @@ export const SessionController = {
         return res.status(400).send({msg:"Credencias Invalidas!"})
       }
 
-      const jwt_token = req.server.jwt.sign({id,email});
+      const jwt_token = req.server.jwt.sign({id, email});
 
       res.setCookie("token",jwt_token,{
+        path:"/",
         httpOnly:true,
-        secure:true,
-        sameSite:'strict'
+        secure:process.env.NODE_ENV === "production",
+        sameSite:'strict',
+        signed:true
       });
 
      return res.send({
@@ -39,7 +41,8 @@ export const SessionController = {
         }
       });
     }catch(erro){
-      console.log(erro);
+      req.log.error(erro);
+      return res.status(500).send({msg:"Erro interno ao autenticar"});
     }
     
   }

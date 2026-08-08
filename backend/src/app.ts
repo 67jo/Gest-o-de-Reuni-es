@@ -12,14 +12,21 @@ export function createApp(){
   })
 
   app.register(cors,{
-    origin:true
+    origin:true,
+    credentials:true
+  })
+
+  app.register(cookie, {
+    secret: process.env.COOKIE_SECRET || "COOKIE_SECRET"
   })
 
   app.register(jwt,{
-    secret:process.env.SECRET_JWT || "SECRET"
+    secret:process.env.SECRET_JWT || "SECRET",
+    cookie:{
+      cookieName:"token",
+      signed:true
+    }
   })
-
-  app.register(cookie)
 
   app.register(userRoutes,{
     prefix:"/user"

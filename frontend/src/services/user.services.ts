@@ -13,6 +13,10 @@ class UserServices {
        const response = await api.post(`${this.basePath}/session`, data);
        return response.data;
     }
+    public getMe = async () =>{
+        const response = await api.get(`${this.basePath}/me`)
+        return response.data
+    }
 }
 
 export const userServices = new UserServices("/user");
