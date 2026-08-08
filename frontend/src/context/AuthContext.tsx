@@ -1,11 +1,11 @@
-// context/AuthContext.tsx — CORRIGIDO
-import { createContext, useCallback, useEffect, useState, type ReactNode } from "react";
+// context/AuthContext.tsx
+import { createContext, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { userServices } from "@/services/user.services";
 
 interface AuthContextData {
   user: UserType | null;
   loading: boolean;
-  refreshUserData: () => Promise<void>; // <- exposto
+  refreshUserData: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextData | undefined>(undefined);
@@ -16,17 +16,25 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<UserType | null>(null);
-  const [loading, setLoading] = useState(false); // <- true por padrão, evita redirect prematuro
+  const [loading, setLoading] = useState(true);
+  const requestIdRef = useRef(0);
 
   const refreshUserData = useCallback(async () => {
+    const currentRequestId = ++requestIdRef.current;
     try {
       setLoading(true);
       const response = await userServices.getMe();
-      setUser(response.data);
+      if (currentRequestId === requestIdRef.current) {
+        setUser(response);
+      }
     } catch (error) {
-      setUser(null);
+      if (currentRequestId === requestIdRef.current) {
+        setUser(null);
+      }
     } finally {
-      setLoading(false);
+      if (currentRequestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
