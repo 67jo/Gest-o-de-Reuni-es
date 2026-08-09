@@ -23,4 +23,4 @@ class Meeting{
     
 }
 
-const meeting = new Meeting()
+export const meeting = new Meeting()
