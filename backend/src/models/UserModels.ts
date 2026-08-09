@@ -19,7 +19,7 @@ class User {
     });    
   }
 
-  async getById(id:number){
+  async getById(id:string){
     return await this.model.findUnique({
       where:{id},
       select:{

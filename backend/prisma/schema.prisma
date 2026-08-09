@@ -8,9 +8,48 @@ datasource db {
 }
 
 model User { 
-  id        Int      @id @default(autoincrement())
+  id        String     @id @default(uuid())
   email     String   @unique(map: "User_email_key")
   name      String?
   password  String
   criado_em DateTime @default(now())
+
+  meetings Meeting[]
+  meetingparticipants MeetingParticipants[]
+}
+
+model Meeting{
+  id    String @id @default(uuid())
+  title String
+  category String
+  room String
+  n_participants Int
+  date_start DateTime
+  date_end DateTime
+  created_at DateTime @default(now())
+
+  responsible_id String
+  responsible User @relation(fields:[responsible_id],references:[id]) 
+
+  meetingparticipants MeetingParticipants[]
+}
+
+model Category{
+  id   String @id @default(uuid())
+  name String
+}
+
+model Room{
+  id   String @id @default(uuid())
+  name String
+  n_participants_suported Int
+}
+
+model MeetingParticipants{
+  id String @id @default(uuid())
+
+  user_id String
+  meeting_id String
+  users_id User @relation(fields: [user_id], references: [id])
+  meetings_id Meeting @relation(fields: [meeting_id], references: [id])
 }
