@@ -11,10 +11,12 @@ export function createApp(){
     logger:true
   })
 
-  app.register(cors,{
+   app.register(cors,{
     origin:true,
-    credentials:true
+    credentials:true,
+    methods:["GET","POST","PUT","PATCH","DELETE","OPTIONS"]
   })
+
 
   app.register(cookie, {
     secret: process.env.COOKIE_SECRET || "COOKIE_SECRET"

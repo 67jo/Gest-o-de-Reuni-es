@@ -6,6 +6,7 @@ interface AuthContextData {
   user: UserType | null;
   loading: boolean;
   refreshUserData: () => Promise<void>;
+  logout: () => Promise<string>
 }
 
 export const AuthContext = createContext<AuthContextData | undefined>(undefined);
@@ -38,12 +39,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
+  const logout = useCallback(async () => {
+    try {
+      const { msg } = await userServices.logout();
+
+      return msg
+    } finally {
+      requestIdRef.current++; // invalida qualquer refreshUserData pendente
+      setUser(null);
+    }
+  }, []);
+
   useEffect(() => {
     refreshUserData();
   }, [refreshUserData]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, refreshUserData }}>
+    <AuthContext.Provider value={{ user, loading, refreshUserData, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -6,9 +6,12 @@ import authMiddleware from "../hooks/auth";
 export const userRoutes = (app:FastifyInstance) => {
     app.post("/register", UserController.register);
     app.post("/session", SessionController.create);
-
+    app.delete("/logout", 
+        { preHandler:authMiddleware },
+        SessionController.destroy
+    );
     app.get("/me",
-         { preHandler:authMiddleware },
-         UserController.getById
-        )
+        { preHandler:authMiddleware },
+        UserController.getById
+    );
 }

@@ -1,8 +1,16 @@
+import { userServices } from '@/services/user.services';
 import { Settings, LayoutDashboard, DoorOpen, Users, LogOut, HelpCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 export const Aside = () => {
   const location = useLocation();
+
+  const navigate = useNavigate();
+
+  const { logout } = useAuth()
 
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -14,6 +22,13 @@ export const Aside = () => {
     { path: '/configuracoes', label: 'Configurações', icon: Settings },
     { path: '/ajuda', label: 'Centro de Ajuda', icon: HelpCircle },
   ];
+
+  const handleLogout = async () =>{
+    const msg  = await logout()
+
+    navigate("/")
+    toast.info(msg)
+  }
 
   return (
     <aside className="w-64 bg-white border-r border-slate-200/60 flex flex-col z-20 h-screen sticky top-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
@@ -90,7 +105,9 @@ export const Aside = () => {
 
       {/* FOOTER - Limpo, sem redundância de perfil */}
       <div className="p-4 border-t border-slate-100">
-        <button className="w-full flex items-center justify-between gap-3 px-4 py-3 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all group">
+        <button 
+        onClick={handleLogout}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all group">
           <div className="flex items-center gap-3">
             <LogOut size={19} className="text-slate-400 group-hover:text-rose-500 transition-colors" />
             <span className="text-sm font-semibold">Terminar Sessão</span>

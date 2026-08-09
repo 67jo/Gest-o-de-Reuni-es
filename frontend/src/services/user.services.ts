@@ -17,6 +17,10 @@ class UserServices {
         const response = await api.get(`${this.basePath}/me`)
         return response.data
     }
+    public logout = async ():Promise<SessionResponseType> =>{
+        const response = await api.delete(`${this.basePath}/logout`)
+        return response.data
+    }
 }
 
 export const userServices = new UserServices("/user");

@@ -45,5 +45,9 @@ export const SessionController = {
       return res.status(500).send({msg:"Erro interno ao autenticar"});
     }
     
+  },
+  async destroy(req:FastifyRequest, res:FastifyReply){
+    res.clearCookie("token", { path:"/" })
+    return res.send({ msg: "Sessão terminada com sucesso" });
   }
 }
