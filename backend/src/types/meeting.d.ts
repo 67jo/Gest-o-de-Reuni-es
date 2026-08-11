@@ -1,4 +1,4 @@
-
+import { MeetingStatus } from "../generated/prisma"
 
 interface MeetingData {
     title:string,
@@ -7,5 +7,7 @@ interface MeetingData {
     n_participants:number,
     responsible_id:string,
     date_start:string,
-    date_end:string
+    date_end:string,
+    status:MeetingStatus
 }
+

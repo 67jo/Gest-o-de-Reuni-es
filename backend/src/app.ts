@@ -4,6 +4,7 @@ import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
 import { userRoutes } from "./routes/user.route";
 import cookie from "@fastify/cookie";
+import { meetingRoute } from "./routes/meeting.route";
 
 
 export function createApp(){
@@ -32,6 +33,10 @@ export function createApp(){
 
   app.register(userRoutes,{
     prefix:"/user"
+  })
+
+  app.register(meetingRoute, {
+    prefix:"/meeting"
   })
 
   return app

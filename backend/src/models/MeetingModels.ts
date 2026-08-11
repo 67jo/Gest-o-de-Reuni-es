@@ -1,4 +1,5 @@
 import { prisma } from "../config/prisma"
+import { MeetingData } from "../types/meeting"
 
 
 class Meeting{

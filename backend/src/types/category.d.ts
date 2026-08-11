@@ -1,0 +1,5 @@
+
+
+interface CategoryData{
+    name:string
+}

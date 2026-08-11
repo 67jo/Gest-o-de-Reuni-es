@@ -26,6 +26,7 @@ model Meeting{
   n_participants Int
   date_start DateTime
   date_end DateTime
+  status MeetingStatus
   created_at DateTime @default(now())
 
   responsible_id String
@@ -36,7 +37,7 @@ model Meeting{
 
 model Category{
   id   String @id @default(uuid())
-  name String
+  name String @default(dbgenerated("u"))
 }
 
 model Room{
@@ -52,4 +53,11 @@ model MeetingParticipants{
   meeting_id String
   users_id User @relation(fields: [user_id], references: [id])
   meetings_id Meeting @relation(fields: [meeting_id], references: [id])
+}
+
+enum MeetingStatus{
+  PENDENTE
+  DECORRENDO
+  TERMINADA
+  CANCELADA
 }
