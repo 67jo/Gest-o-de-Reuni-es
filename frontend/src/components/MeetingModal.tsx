@@ -5,12 +5,16 @@ import {
   ChevronLeft, ChevronRight, Edit3 
 } from 'lucide-react';
 import api from '../api/axios';
+import { meetingServices } from '@/services/meeting.services';
+import type { Meeting, MeetingStatus, category, room } from '@/types/meetings';
+
+export type { Meeting, MeetingStatus };
 
 interface MeetingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onMeetingUpdated: () => void;
-  meetingToEdit?: any;
+  meetingToEdit?: Meeting | null;
 }
 
 export default function MeetingModal({ isOpen, onClose, onMeetingUpdated, meetingToEdit = null }: MeetingModalProps) {
@@ -19,20 +23,29 @@ export default function MeetingModal({ isOpen, onClose, onMeetingUpdated, meetin
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [dbUsers, setDbUsers] = useState<any[]>([]);
-  const [dbRooms, setDbRooms] = useState<any[]>([]);
-  
+  const [dbRooms, setDbRooms] = useState<room[]>([]);
+  const [dbCategories, setDbCategories] = useState<category[]>([]);
+
   const [formData, setFormData] = useState({
     title: '',
     category: '',
-    sala_id: '',
-    owner_id: '', 
+    room: '',
+    responsible: '',
+    status: 'PENDENTE' as MeetingStatus,
     date: null as Date | null,
-    startTime: '09:00', 
+    startTime: '09:00',
     endTime: '10:00',
     participants: [] as any[]
   });
 
-  const categories = ['Estratégia', 'Operacional', 'Brainstorming', 'RH', 'Cliente', 'Outros'];
+  const statusOptions: MeetingStatus[] = ['PENDENTE', 'DECORRENDO', 'CANCELADA', 'TERMINADA'];
+  const statusLabels: Record<MeetingStatus, string> = {
+    PENDENTE: 'Pendente',
+    DECORRENDO: 'A decorrer',
+    CANCELADA: 'Cancelada',
+    TERMINADA: 'Terminada'
+  };
+
   const [viewDate, setViewDate] = useState(new Date());
   const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
   const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -41,41 +54,51 @@ export default function MeetingModal({ isOpen, onClose, onMeetingUpdated, meetin
   useEffect(() => {
     if (isOpen) {
       setLoading(true);
-      Promise.all([
-        api.get('/salas'),
-        api.get('/user-list') 
-      ]).then(([roomsRes, usersRes]) => {
-        setDbRooms(roomsRes.data);
-        setDbUsers(usersRes.data);
+      Promise.allSettled([
+        api.get('/user-list'),
+        meetingServices.getMeetingModalData()
+      ]).then(([usersResult, modalDataResult]) => {
+        if (usersResult.status === 'fulfilled') {
+          setDbUsers(usersResult.value.data);
+        } else {
+          console.error("Erro ao carregar utilizadores:", usersResult.reason);
+        }
+
+        if (modalDataResult.status === 'fulfilled') {
+          setDbRooms(modalDataResult.value.roomAll);
+          setDbCategories(modalDataResult.value.categoryAll);
+        } else {
+          console.error("Erro ao carregar dados do modal (salas/categorias):", modalDataResult.reason);
+        }
 
         if (meetingToEdit) {
-          const startDate = new Date(meetingToEdit.startTime.replace(' ', 'T'));
-          const endDate = new Date(meetingToEdit.endTime.replace(' ', 'T'));
+          const startDate = new Date(meetingToEdit.date_start.replace(' ', 'T'));
+          const endDate = new Date(meetingToEdit.date_end.replace(' ', 'T'));
 
           setFormData({
             title: meetingToEdit.title,
-            category: meetingToEdit.categoria,
-            sala_id: String(meetingToEdit.sala_id),
-            owner_id: String(meetingToEdit.respondavel_id),
+            category: meetingToEdit.category,
+            room: meetingToEdit.room,
+            responsible: meetingToEdit.responsible,
+            status: meetingToEdit.status,
             date: startDate,
             startTime: startDate.toTimeString().slice(0, 5),
             endTime: endDate.toTimeString().slice(0, 5),
-            participants: meetingToEdit.participants || []
+            participants: [] // participantes não vêm no shape de Meeting; ajustar se a API expuser essa lista
           });
           setViewDate(startDate);
         }
-      }).catch(err => console.error("Erro ao carregar dados:", err))
-        .finally(() => setLoading(false));
+      }).finally(() => setLoading(false));
     }
   }, [isOpen, meetingToEdit]);
 
   const handleNext = () => setStep((prev) => Math.min(prev + 1, 3));
   const handleBack = () => setStep((prev) => Math.max(prev - 1, 1));
-  
+
   const toggleParticipant = (user: any) => {
     setFormData(prev => {
       const isSelected = prev.participants.some(p => p.id === user.id);
-      return isSelected 
+      return isSelected
         ? { ...prev, participants: prev.participants.filter(p => p.id !== user.id) }
         : { ...prev, participants: [...prev.participants, user] };
     });
@@ -96,21 +119,22 @@ export default function MeetingModal({ isOpen, onClose, onMeetingUpdated, meetin
     try {
       const payload = {
         title: formData.title,
-        categoria: formData.category,
-        sala_id: Number(formData.sala_id),
-        startTime: formatToMySQL(formData.startTime),
-        endTime: formatToMySQL(formData.endTime),
-        respondavel_id: formData.owner_id, 
+        category: formData.category,
+        room: formData.room,
+        responsible: formData.responsible,
+        status: formData.status,
+        date_start: formatToMySQL(formData.startTime),
+        date_end: formatToMySQL(formData.endTime),
         description: `Participantes: ${formData.participants.map(p => p.nome_completo).join(', ')}`
-      };
+      } as Meeting;
 
-      if (isEditMode) {
+      if (isEditMode && meetingToEdit) {
         await api.put(`/meeting-update/${meetingToEdit.id}`, payload);
       } else {
-        await api.post('/meeting-create', payload);
+        await meetingServices.create(payload);
       }
 
-      if (onMeetingUpdated) onMeetingUpdated(); 
+      if (onMeetingUpdated) onMeetingUpdated();
       handleClose();
     } catch (error: any) {
       alert(error.response?.data?.message || "Erro no servidor.");
@@ -121,19 +145,29 @@ export default function MeetingModal({ isOpen, onClose, onMeetingUpdated, meetin
 
   const handleClose = () => {
     setStep(1);
-    setFormData({ title: '', category: '', sala_id: '', owner_id: '', date: null, startTime: '09:00', endTime: '10:00', participants: [] });
+    setFormData({
+      title: '',
+      category: '',
+      room: '',
+      responsible: '',
+      status: 'PENDENTE',
+      date: null,
+      startTime: '09:00',
+      endTime: '10:00',
+      participants: []
+    });
     onClose();
   };
 
-  const isStep1Valid = formData.title.trim() !== '' && formData.category !== '' && formData.sala_id !== '' && formData.owner_id !== '';
-  const isStep2Valid = (formData.date instanceof Date) && formData.startTime !== '' && formData.endTime !== '';  
+  const isStep1Valid = formData.title.trim() !== '' && formData.category !== '' && formData.room !== '' && formData.responsible !== '';
+  const isStep2Valid = (formData.date instanceof Date) && formData.startTime !== '' && formData.endTime !== '';
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col h-[680px] animate-in fade-in zoom-in-95 duration-200">
-        
+
         {/* HEADER */}
         <div className="bg-slate-50 border-b border-slate-200 px-8 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -164,12 +198,12 @@ export default function MeetingModal({ isOpen, onClose, onMeetingUpdated, meetin
               <div className="grid grid-cols-1 gap-6">
                 <div className="group">
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-indigo-600 transition-colors">Título da Reunião</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="Ex: Alinhamento de Design"
-                    value={formData.title} 
-                    onChange={(e) => setFormData({...formData, title: e.target.value})} 
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all" 
+                    value={formData.title}
+                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
                   />
                 </div>
               </div>
@@ -179,25 +213,36 @@ export default function MeetingModal({ isOpen, onClose, onMeetingUpdated, meetin
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Categoria</label>
                   <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 transition-all cursor-pointer">
                     <option value="">Selecione...</option>
-                    {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                    {dbCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Sala de Reunião</label>
-                  <select value={formData.sala_id} onChange={(e) => setFormData({...formData, sala_id: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 transition-all cursor-pointer">
+                  <select value={formData.room} onChange={(e) => setFormData({...formData, room: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 transition-all cursor-pointer">
                     <option value="">Selecione a sala...</option>
-                    {dbRooms.map(r => <option key={r.id} value={r.id}>{r.nome}</option>)}
+                    {dbRooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                   </select>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Responsável Organização</label>
-                <select value={formData.owner_id} onChange={(e) => setFormData({...formData, owner_id: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 transition-all cursor-pointer">
-                  <option value="">Selecione o responsável...</option>
-                  {dbUsers.map(u => <option key={u.id} value={u.id}>{u.nome_completo}</option>)}
-                </select>
+              <div className={`grid ${isEditMode ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Responsável Organização</label>
+                  <select value={formData.responsible} onChange={(e) => setFormData({...formData, responsible: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 transition-all cursor-pointer">
+                    <option value="">Selecione o responsável...</option>
+                    {dbUsers.map(u => <option key={u.id} value={u.id}>{u.nome_completo}</option>)}
+                  </select>
+                </div>
+
+                {isEditMode && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Estado</label>
+                    <select value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value as MeetingStatus})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:bg-white focus:border-indigo-500 transition-all cursor-pointer">
+                      {statusOptions.map(s => <option key={s} value={s}>{statusLabels[s]}</option>)}
+                    </select>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -209,8 +254,8 @@ export default function MeetingModal({ isOpen, onClose, onMeetingUpdated, meetin
                     <CalendarIcon size={20} className="text-indigo-600"/> {months[viewDate.getMonth()]} de {viewDate.getFullYear()}
                   </h3>
                   <div className="flex gap-1">
-                    <button onClick={() => setViewDate(new Date(viewDate.setMonth(viewDate.getMonth() - 1)))} className="p-2 hover:bg-slate-100 rounded-lg transition-colors"><ChevronLeft size={20} /></button>
-                    <button onClick={() => setViewDate(new Date(viewDate.setMonth(viewDate.getMonth() + 1)))} className="p-2 hover:bg-slate-100 rounded-lg transition-colors"><ChevronRight size={20} /></button>
+                    <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} className="p-2 hover:bg-slate-100 rounded-lg transition-colors"><ChevronLeft size={20} /></button>
+                    <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))} className="p-2 hover:bg-slate-100 rounded-lg transition-colors"><ChevronRight size={20} /></button>
                   </div>
                 </div>
 
@@ -224,7 +269,7 @@ export default function MeetingModal({ isOpen, onClose, onMeetingUpdated, meetin
                     const day = i + 1;
                     const isSelected = formData.date?.getDate() === day && formData.date?.getMonth() === viewDate.getMonth() && formData.date?.getFullYear() === viewDate.getFullYear();
                     return (
-                      <button key={day} onClick={() => setFormData({...formData, date: new Date(viewDate.getFullYear(), viewDate.getMonth(), day)})} 
+                      <button key={day} onClick={() => setFormData({...formData, date: new Date(viewDate.getFullYear(), viewDate.getMonth(), day)})}
                         className={`h-10 rounded-xl text-sm font-bold transition-all ${isSelected ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'hover:bg-indigo-50 text-slate-600'}`}>
                         {day}
                       </button>
@@ -249,14 +294,14 @@ export default function MeetingModal({ isOpen, onClose, onMeetingUpdated, meetin
             <div className="flex flex-col h-full animate-in slide-in-from-right-8 duration-300">
                <div className="mb-6 relative">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input type="text" placeholder="Buscar participantes..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} 
+                  <input type="text" placeholder="Buscar participantes..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white transition-all outline-none focus:border-indigo-500" />
                </div>
                <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                   {dbUsers.filter(u => u.nome_completo.toLowerCase().includes(searchTerm.toLowerCase())).map(user => {
                     const isSelected = formData.participants.some(p => p.id === user.id);
                     return (
-                      <div key={user.id} onClick={() => toggleParticipant(user)} 
+                      <div key={user.id} onClick={() => toggleParticipant(user)}
                         className={`flex items-center p-3 rounded-2xl border cursor-pointer transition-all ${isSelected ? 'border-indigo-500 bg-indigo-50/50' : 'border-slate-100 hover:border-slate-300'}`}>
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 flex items-center justify-center font-bold mr-4">{user.nome_completo.charAt(0)}</div>
                         <div className="flex-1 text-sm">
@@ -279,20 +324,20 @@ export default function MeetingModal({ isOpen, onClose, onMeetingUpdated, meetin
           <button onClick={handleBack} disabled={step === 1} className={`px-6 py-2.5 font-bold text-sm transition-all ${step === 1 ? 'opacity-0 pointer-events-none' : 'text-slate-500 hover:text-slate-800'}`}>
             Voltar
           </button>
-          
+
           <div className="flex gap-3">
             <button onClick={handleClose} className="px-6 py-2.5 text-sm font-bold text-slate-400 hover:text-slate-600">Cancelar</button>
             {step < 3 ? (
-              <button 
-                onClick={handleNext} 
-                disabled={step === 1 ? !isStep1Valid : !isStep2Valid} 
+              <button
+                onClick={handleNext}
+                disabled={step === 1 ? !isStep1Valid : !isStep2Valid}
                 className={`px-8 py-3 rounded-xl font-bold text-sm shadow-lg transition-all active:scale-95 ${((step === 1 && isStep1Valid) || (step === 2 && isStep2Valid)) ? 'bg-indigo-600 text-white shadow-indigo-200 hover:bg-indigo-700' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}>
                 Continuar
               </button>
             ) : (
-              <button 
-                onClick={handleSubmit} 
-                disabled={formData.participants.length === 0 || loading} 
+              <button
+                onClick={handleSubmit}
+                disabled={formData.participants.length === 0 || loading}
                 className={`px-8 py-3 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg transition-all active:scale-95 ${formData.participants.length > 0 ? 'bg-emerald-600 text-white shadow-emerald-200 hover:bg-emerald-700' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}>
                 {loading ? 'Processando...' : isEditMode ? 'Salvar Alterações' : 'Confirmar Agendamento'}
                 {!loading && <CheckCircle2 size={18} />}
