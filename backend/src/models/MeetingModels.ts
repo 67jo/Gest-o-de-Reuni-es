@@ -1,6 +1,5 @@
 import { prisma } from "../config/prisma"
 import { MeetingData } from "../types/meeting"
-import type { Prisma } from "@prisma/client"
 
 interface GetAllFilters {
     year?: number;
@@ -28,13 +27,14 @@ class Meeting{
     }
 
     async getAll(filters: GetAllFilters = {}){
-        const where: Prisma.MeetingWhereInput = {};
-
-        if (filters.year !== undefined && filters.month !== undefined) {
-            const start = new Date(Date.UTC(filters.year, filters.month - 1, 1));
-            const end = new Date(Date.UTC(filters.year, filters.month, 1));
-            where.date_start = { gte: start, lt: end };
-        }
+        const where = filters.year !== undefined && filters.month !== undefined
+            ? {
+                date_start: {
+                    gte: new Date(Date.UTC(filters.year, filters.month - 1, 1)),
+                    lt: new Date(Date.UTC(filters.year, filters.month, 1))
+                }
+            }
+            : {};
 
         return await this.model.findMany({ where })
     }
