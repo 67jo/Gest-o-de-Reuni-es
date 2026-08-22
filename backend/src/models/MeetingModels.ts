@@ -21,6 +21,10 @@ class Meeting{
             }
         })
     }
+
+    async getAll(){
+        return await this.model.findMany()
+    }
     
 }
 

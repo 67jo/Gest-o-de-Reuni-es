@@ -7,9 +7,13 @@ import authMiddleware from "../hooks/auth";
 export const meetingRoute = (app:FastifyInstance) =>{
     app.post("/create",
          {preHandler:authMiddleware},
-          MeetingControler.create)
-          
+          MeetingControler.create);
+
     app.get("/modal-data",
          {preHandler:authMiddleware},
-          MeetingControler.getMeetingModalData) 
+          MeetingControler.getMeetingModalData) ;
+
+   app.get("/list-data", 
+    {preHandler:authMiddleware},
+    MeetingControler.getAll);       
 }

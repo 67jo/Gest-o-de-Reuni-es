@@ -19,5 +19,12 @@ export const MeetingControler = {
             categoryAll,
             roomAll
         })
+    },
+    getAll: async (req:FastifyRequest, res:FastifyReply) =>{
+        const meetingData = await meeting.getAll()
+
+        return res.send({
+            meetingData
+        })
     }
 }
