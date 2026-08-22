@@ -1,4 +1,4 @@
-import type { MeetingPayload, ModalMeetingData } from "@/types/meetings";
+import type { Meeting, MeetingPayload, ModalMeetingData } from "@/types/meetings";
 import api from "../api/axios";
 import type { AxiosResponse } from "axios";
 
@@ -13,6 +13,10 @@ class MeetingServices {
     } 
     public getMeetingModalData = async () =>{
         const response: AxiosResponse<ModalMeetingData> = await api.get(`${this.basePath}/modal-data`);
+        return response.data;
+    }
+    public getAll = async () =>{
+        const response: AxiosResponse<Meeting> = await api.get(`${this.basePath}/list-data`);
         return response.data;
     }
 }
