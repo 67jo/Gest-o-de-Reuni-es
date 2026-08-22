@@ -38,6 +38,11 @@ export const UserController = {
    }catch(error){
       return res.status(401).send({msg:"Erro ao carrgar dados"})
    }
+  },
+  async findAll(req:FastifyRequest, res:FastifyReply){
+    const userAll = await userModel.getAll();
+    
+    return res.send(userAll);
   }
   
 };

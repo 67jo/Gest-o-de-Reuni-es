@@ -14,4 +14,8 @@ export const userRoutes = (app:FastifyInstance) => {
         { preHandler:authMiddleware },
         UserController.getById
     );
+    app.get("/user-list",
+        { preHandler:authMiddleware },
+        UserController.findAll
+    );
 }

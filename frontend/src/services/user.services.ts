@@ -21,6 +21,10 @@ class UserServices {
         const response = await api.delete(`${this.basePath}/logout`)
         return response.data
     }
+    public findAll = async () =>{
+        const response = await api.get(`${this.basePath}/user-list`)
+        return response.data
+    }
 }
 
 export const userServices = new UserServices("/user");

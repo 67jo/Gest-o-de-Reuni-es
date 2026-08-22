@@ -15,9 +15,7 @@ interface MeetingParticipantsStepProps {
 export function MeetingParticipantsStep({ dbUsers, participants, toggleParticipant }: MeetingParticipantsStepProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredUsers = dbUsers.filter(u =>
-    u.nome_completo.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = dbUsers.filter(u => u.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="flex h-full flex-col animate-in slide-in-from-right-8 duration-300">
@@ -45,12 +43,12 @@ export function MeetingParticipantsStep({ dbUsers, participants, toggleParticipa
               >
                 <Avatar className="mr-4">
                   <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 font-bold text-slate-600">
-                    {user.nome_completo.charAt(0)}
+                    {user.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 text-sm">
-                  <h4 className="font-bold text-slate-800">{user.nome_completo}</h4>
-                  <p className="text-xs text-slate-400">{user.departamento || 'Sem departamento'}</p>
+                  <h4 className="font-bold text-slate-800">{user.name}</h4>
+                  <p className="text-xs text-slate-400">{user.email}</p>
                 </div>
                 <div
                   className={`flex h-6 w-6 items-center justify-center rounded-lg transition-all ${

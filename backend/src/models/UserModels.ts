@@ -29,6 +29,16 @@ class User {
       }
     })
   }
+
+  async getAll(){
+    return await this.model.findMany({
+      select:{
+        id:true,
+        name:true,
+        email:true
+      }
+    })
+  }
 }
 
 export const userModel = new User()

@@ -6,8 +6,8 @@ import { useAuth } from './useAuth';
 
 export interface MeetingParticipant {
   id: string;
-  nome_completo: string;
-  departamento?: string;
+  name: string;
+  email: string;
 }
 
 export interface MeetingFormData {
@@ -119,7 +119,7 @@ export function useMeetingForm({ isOpen, meetingToEdit, onSuccess, onClose }: Us
         status: formData.status,
         date_start: formatToMySQL(formData.startTime),
         date_end: formatToMySQL(formData.endTime),
-        description: `Participantes: ${formData.participants.map(p => p.nome_completo).join(', ')}`
+        description: `Participantes: ${formData.participants.map(p => p.name).join(', ')}`
       } as Meeting;
 
       if (isEditMode && meetingToEdit) {
