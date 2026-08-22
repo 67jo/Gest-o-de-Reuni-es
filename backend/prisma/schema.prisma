@@ -37,7 +37,7 @@ model Meeting{
 
 model Category{
   id   String @id @default(uuid())
-  name String @default(dbgenerated("u"))
+  name String @default(dbgenerated())
 }
 
 model Room{
@@ -46,13 +46,18 @@ model Room{
   n_participants_suported Int
 }
 
-model MeetingParticipants{
+model MeetingParticipants {
   id String @id @default(uuid())
 
-  user_id String
+  user_id    String
   meeting_id String
-  users_id User @relation(fields: [user_id], references: [id])
-  meetings_id Meeting @relation(fields: [meeting_id], references: [id])
+
+  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  meeting Meeting @relation(fields: [meeting_id], references: [id], onDelete: Cascade)
+
+  created_at DateTime @default(now())
+
+  @@unique([user_id, meeting_id])
 }
 
 enum MeetingStatus{
