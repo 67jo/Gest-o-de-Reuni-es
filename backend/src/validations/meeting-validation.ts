@@ -14,6 +14,11 @@ class MeetingValidation{
         status:z.enum(MeetingStatus),
          
     })
+
+      meetingListQuery = z.object({
+        year: z.coerce.number().int().optional(),
+        month: z.coerce.number().int().min(1).max(12).optional()
+    })
 }
 
 export const meetingValidation = new MeetingValidation()

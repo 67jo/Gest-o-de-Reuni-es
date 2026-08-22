@@ -8,8 +8,9 @@ export const MeetingControler = {
     create :async (req:FastifyRequest, res:FastifyReply) =>{
         const {title, category, room, responsible, n_participants, date_end, date_start, status} = meetingValidation.meetingData.parse(req.body);
 
-        meeting.create({title, category,room, responsible_id:responsible, n_participants, date_end, date_start, status})
-        return res.send({msg:"criado com sucesso"})
+        const created = await meeting.create({title, category, room, responsible_id: responsible, n_participants, date_end, date_start, status});
+
+        return res.status(201).send({msg:"criado com sucesso", meeting: created});
     },
     getMeetingModalData: async (req:FastifyRequest, res:FastifyReply) =>{
         const categoryAll = await category.findAll()
@@ -18,6 +19,15 @@ export const MeetingControler = {
        return  res.send({
             categoryAll,
             roomAll
+        })
+    },
+    getAll: async (req:FastifyRequest, res:FastifyReply) =>{
+        const { year, month } = meetingValidation.meetingListQuery.parse(req.query);
+
+        const meetingData = await meeting.getAll({ year, month })
+
+        return res.send({
+            meetingData
         })
     }
 }
