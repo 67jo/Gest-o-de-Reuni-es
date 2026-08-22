@@ -13,6 +13,10 @@ export interface Meeting {
   n_participants: number;
 }
 
+export interface MeetingListResponse {
+  meetingData: Array<Omit<Meeting, 'responsible'> & { responsible_id: string }>;
+}
+
 export interface category {
   id: string;
   name: string;

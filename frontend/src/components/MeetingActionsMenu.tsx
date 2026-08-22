@@ -1,5 +1,4 @@
 import { MoreVertical, Edit3, CheckCircle2, XCircle, CalendarCheck } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,14 +18,10 @@ interface MeetingActionsMenuProps {
 export function MeetingActionsMenu({ meeting, onEdit, onStatusChange }: MeetingActionsMenuProps) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          className="border-slate-100 bg-slate-50 text-slate-400 hover:border-indigo-100 hover:bg-white hover:text-indigo-600"
-        >
-          <MoreVertical size={20} />
-        </Button>
+      <DropdownMenuTrigger
+        className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-100 bg-slate-50 text-slate-400 transition-colors hover:border-indigo-100 hover:bg-white hover:text-indigo-600"
+      >
+        <MoreVertical size={20} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400">

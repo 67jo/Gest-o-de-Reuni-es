@@ -1,39 +1,47 @@
 import { useCallback, useEffect, useState } from 'react';
-import api from '@/api/axios';
+import { meetingServices } from '@/services/meeting.services';
 import type { Meeting, room } from '@/types/meetings';
 
-export function useDashboardData() {
-  const [meetingsList, setMeetingsList] = useState<Meeting[]>([]);
-  const [roomsList, setRoomsList] = useState<room[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function useDashboardData(year: number, month: number) {
+    const [meetingsList, setMeetingsList] = useState<Meeting[]>([]);
+    const [roomsList, setRoomsList] = useState<room[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-  const fetchDashboardData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [meetingsRes, modalDataRes] = await Promise.all([
-        api.get<Meeting[]>('/meeting/list'), // confirmar endpoint real de listagem
-        api.get('/meeting/modal-data')
-      ]);
-      setMeetingsList(meetingsRes.data);
-      setRoomsList(modalDataRes.data.rooms ?? []);
-    } catch (err) {
-      console.error('Erro ao buscar dados do dashboard:', err);
-      setError('Não foi possível carregar os dados do dashboard.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    const fetchDashboardData = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const [meetingsData, modalData] = await Promise.all([
+                meetingServices.getAll({ year, month: month + 1 }), // month vem 0-indexed do Date
+                meetingServices.getMeetingModalData()
+            ]);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
+            const meetings: Meeting[] = (meetingsData.meetingData ?? []).map(m => ({
+                ...m,
+                responsible: (m as any).responsible_id ?? (m as any).responsible
+            }));
 
-  const getRoomName = (roomId: string) => {
-    const found = roomsList.find(r => r.id === roomId);
-    return found ? found.name : `Sala ${roomId}`;
-  };
+            setMeetingsList(meetings);
+            setRoomsList(Array.isArray(modalData.roomAll) ? modalData.roomAll : []);
+        } catch (err) {
+            console.error('Erro ao buscar dados do dashboard:', err);
+            setError('Não foi possível carregar os dados do dashboard.');
+            setMeetingsList([]);
+            setRoomsList([]);
+        } finally {
+            setLoading(false);
+        }
+    }, [year, month]);
 
-  return { meetingsList, roomsList, loading, error, fetchDashboardData, getRoomName };
+    useEffect(() => {
+        fetchDashboardData();
+    }, [fetchDashboardData]);
+
+    const getRoomName = (roomId: string) => {
+        const found = roomsList.find(r => r.id === roomId);
+        return found ? found.name : `Sala ${roomId}`;
+    };
+
+    return { meetingsList, roomsList, loading, error, fetchDashboardData, getRoomName };
 }

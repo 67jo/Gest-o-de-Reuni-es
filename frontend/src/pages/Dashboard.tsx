@@ -13,12 +13,15 @@ import type { Meeting, MeetingStatus } from '@/types/meetings';
 import api from '../api/axios';
 
 export default function Dashboard() {
-  const [viewDate, setViewDate] = useState(new Date(2026, 3, 1));
+  const [viewDate, setViewDate] = useState(() => new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [meetingToEdit, setMeetingToEdit] = useState<Meeting | null>(null);
   const { searchTerm } = useSearch();
 
-  const { meetingsList, loading, error, fetchDashboardData, getRoomName } = useDashboardData();
+  const { meetingsList, loading, error, fetchDashboardData, getRoomName } = useDashboardData(
+    viewDate.getFullYear(),
+    viewDate.getMonth()
+  );
 
   const currentMonthLabel = viewDate
     .toLocaleDateString('pt-AO', { month: 'long', year: 'numeric' })
@@ -26,21 +29,16 @@ export default function Dashboard() {
 
   const nextMonth = () => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
   const prevMonth = () => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
-  const goToCurrentMonth = () => setViewDate(new Date(2026, 3, 1));
+  const goToCurrentMonth = () => setViewDate(new Date());
 
   const filteredMeetings = useMemo(() => {
-    return meetingsList.filter(meeting => {
-      const meetingDate = new Date(meeting.date_start);
-      const matchesDate =
-        meetingDate.getMonth() === viewDate.getMonth() &&
-        meetingDate.getFullYear() === viewDate.getFullYear();
-      const term = searchTerm.toLowerCase();
-      const matchesSearch =
-        meeting.title.toLowerCase().includes(term) ||
-        meeting.category.toLowerCase().includes(term);
-      return matchesDate && matchesSearch;
-    });
-  }, [meetingsList, viewDate, searchTerm]);
+    const term = searchTerm.toLowerCase();
+    return meetingsList.filter(meeting =>
+      meeting.title.toLowerCase().includes(term) ||
+      meeting.category.toLowerCase().includes(term)
+    );
+  }, [meetingsList, searchTerm]);
+
 
   const stats = useMemo(() => {
     const total = filteredMeetings.length;
