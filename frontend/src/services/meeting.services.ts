@@ -1,4 +1,4 @@
-import type { Meeting, ModalMeetingData } from "@/types/meetings";
+import type { MeetingPayload, ModalMeetingData } from "@/types/meetings";
 import api from "../api/axios";
 import type { AxiosResponse } from "axios";
 
@@ -7,7 +7,7 @@ class MeetingServices {
     constructor(basePath:string){
         this.basePath = basePath
     }
-    public create = async (data:Meeting) =>{
+    public create = async (data:MeetingPayload) =>{
        const response = await api.post(`${this.basePath}/create`, data);
        return response.data;
     } 

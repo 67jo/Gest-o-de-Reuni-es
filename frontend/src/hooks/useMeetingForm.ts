@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '@/api/axios';
 import { meetingServices } from '@/services/meeting.services';
-import type { Meeting, MeetingStatus } from '@/types/meetings';
+import type { Meeting, MeetingStatus, MeetingPayload } from '@/types/meetings';
 import { useAuth } from './useAuth';
 
 export interface MeetingParticipant {
@@ -87,14 +87,14 @@ export function useMeetingForm({ isOpen, meetingToEdit, onSuccess, onClose }: Us
     });
   };
 
-  const formatToMySQL = (timeStr: string) => {
+  // Combina formData.date + horário (HH:mm) num ISO datetime válido (com T e Z),
+  // que é o formato exigido pelo Zod no backend.
+  const combineDateTime = (timeStr: string) => {
     if (!formData.date) return '';
     const d = new Date(formData.date);
     const [hours, minutes] = timeStr.split(':');
     d.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-    // Ajuste simples de fuso horário local para string MySQL format
-    const tzOffset = d.getTimezoneOffset() * 60000;
-    return new Date(d.getTime() - tzOffset).toISOString().slice(0, 19).replace('T', ' ');
+    return d.toISOString();
   };
 
   const handleNext = () => setStep(prev => Math.min(prev + 1, 3));
@@ -109,21 +109,22 @@ export function useMeetingForm({ isOpen, meetingToEdit, onSuccess, onClose }: Us
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      const payload = {
+      const payload: MeetingPayload = {
         title: formData.title,
-        category: formData.category,
-        room: formData.room,
+        category: formData.category ?? '',
+        room: formData.room ?? '',
         // Em criação, o responsável é sempre quem está a criar.
         // Em edição, mantém o responsável original da reunião.
-        responsible: isEditMode && meetingToEdit ? meetingToEdit.responsible : user?.id,
+        responsible: (isEditMode && meetingToEdit ? meetingToEdit.responsible : user?.id) ?? '',
         status: formData.status,
-        date_start: formatToMySQL(formData.startTime),
-        date_end: formatToMySQL(formData.endTime),
+        n_participants: formData.participants.length,
+        date_start: combineDateTime(formData.startTime),
+        date_end: combineDateTime(formData.endTime),
         description: `Participantes: ${formData.participants.map(p => p.name).join(', ')}`
-      } as Meeting;
+      };
 
       if (isEditMode && meetingToEdit) {
-        await api.put(`/meeting-update/${meetingToEdit.id}`, payload);
+        await api.put<Meeting>(`/meeting-update/${meetingToEdit.id}`, payload);
       } else {
         await meetingServices.create(payload);
       }
