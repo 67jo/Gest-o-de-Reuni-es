@@ -109,19 +109,18 @@ export function useMeetingForm({ isOpen, meetingToEdit, onSuccess, onClose }: Us
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      const payload: MeetingPayload = {
-        title: formData.title,
-        category: formData.category ?? '',
-        room: formData.room ?? '',
-        // Em criação, o responsável é sempre quem está a criar.
-        // Em edição, mantém o responsável original da reunião.
-        responsible: (isEditMode && meetingToEdit ? meetingToEdit.responsible : user?.id) ?? '',
-        status: formData.status,
-        n_participants: formData.participants.length,
-        date_start: combineDateTime(formData.startTime),
-        date_end: combineDateTime(formData.endTime),
-        description: `Participantes: ${formData.participants.map(p => p.name).join(', ')}`
-      };
+     const payload: MeetingPayload = {
+      title: formData.title,
+      category: formData.category ?? '',
+      room: formData.room ?? '',
+      responsible: (isEditMode && meetingToEdit ? meetingToEdit.responsible : user?.id) ?? '',
+      status: formData.status,
+      n_participants: formData.participants.length,
+      date_start: combineDateTime(formData.startTime),
+      date_end: combineDateTime(formData.endTime),
+      description: `Participantes: ${formData.participants.map(p => p.name).join(', ')}`,
+      participant_ids: formData.participants.map(p => p.id) // ← novo
+    };
 
       if (isEditMode && meetingToEdit) {
         await api.put<Meeting>(`/meeting-update/${meetingToEdit.id}`, payload);

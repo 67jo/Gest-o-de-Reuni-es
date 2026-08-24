@@ -11,6 +11,7 @@ export interface Meeting {
   status: MeetingStatus;
   category: string;
   n_participants: number;
+  participant_ids: string[]; // ← novo
 }
 
 export interface MeetingListResponse {
