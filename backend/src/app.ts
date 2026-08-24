@@ -39,5 +39,9 @@ export function createApp(){
     prefix:"/meeting"
   })
 
+  app.register(meetingRoute, {
+    prefix:"/room"
+  })
+
   return app
 }
