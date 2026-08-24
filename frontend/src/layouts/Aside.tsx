@@ -85,7 +85,6 @@ export const Aside = () => {
           </p>
           <nav className="flex flex-col gap-1.5">
             {secondaryItems.map((item) => {
-              const isActive = location.pathname === item.path;
               const Icon = item.icon;
               return (
                 <Link

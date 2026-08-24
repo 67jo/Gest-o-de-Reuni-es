@@ -5,7 +5,7 @@ class UserServices {
     constructor(basePath:string){
         this.basePath = basePath
     }
-    public register = async (data:UserType) =>{
+    public register = async (data:RegisterData) =>{
        const response = await api.post(`${this.basePath}/register`, data);
        return response.data;
     }

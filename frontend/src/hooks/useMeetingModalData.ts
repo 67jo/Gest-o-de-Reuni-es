@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import api from '@/api/axios';
 import { meetingServices } from '@/services/meeting.services';
 import { userServices } from '@/services/user.services';
 import type { category, room } from '@/types/meetings';
