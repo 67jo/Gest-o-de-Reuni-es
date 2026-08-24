@@ -1,14 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import api from '@/api/axios';
+import { roomServices } from '@/services/room.services';
 
-export interface Room {
-  id: number;
-  nome: string;
-  capacidade: number;
-  localizacao?: string;
-  status: string;
-  resources?: string[];
-}
 
 export function useRoomsData() {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -19,8 +11,8 @@ export function useRoomsData() {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get<Room[]>('/salas'); // confirmar endpoint real
-      setRooms(Array.isArray(response.data) ? response.data : []);
+      const data = await roomServices.getAll();
+      setRooms(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Erro ao buscar salas:', err);
       setError('Não foi possível carregar as salas.');
@@ -34,13 +26,13 @@ export function useRoomsData() {
     fetchRooms();
   }, [fetchRooms]);
 
-  const removeRoom = async (id: number) => {
-    await api.delete(`/salas/${id}`);
+  const removeRoom = async (id: string) => {
+    await roomServices.remove(id);
     setRooms(prev => prev.filter(room => room.id !== id));
   };
 
-  const addRoom = async (payload: { nome: string; capacidade: number; status: string; localizacao: string }) => {
-    await api.post('/salas', payload);
+  const addRoom = async (payload: RoomPayload) => {
+    await roomServices.create(payload);
     await fetchRooms();
   };
 

@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react';
-import { DoorOpen, Plus, CheckCircle2, Users } from 'lucide-react';
+import { DoorOpen, Plus, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ModalSala } from '../components/ModaSalas';
 import { useSearch } from '../context/SearchContext';
 import { useRoomsData } from '../hooks/useRoomsData';
-import { isAvailable } from '@/lib/room-status';
 import { RoomStat } from '../components/RoomStat';
 import { RoomCard } from '../components/RoomCard';
 import { RoomsEmptyState } from '../components/RoomEmptyState';
@@ -16,26 +15,20 @@ export default function Salas() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newRoom, setNewRoom] = useState({
     name: '',
-    capacity: '',
-    location: 'Miramar',
-    status: 'disponível'
+    capacity: ''
   });
 
   const filteredRooms = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return rooms.filter(room =>
-      room.nome.toLowerCase().includes(term) ||
-      (room.localizacao && room.localizacao.toLowerCase().includes(term))
-    );
+    return rooms.filter(room => room.name.toLowerCase().includes(term));
   }, [rooms, searchTerm]);
 
   const stats = useMemo(() => ({
     total: rooms.length,
-    available: rooms.filter(r => isAvailable(r.status)).length,
-    totalCapacity: rooms.reduce((acc, curr) => acc + (curr.capacidade || 0), 0)
+    totalCapacity: rooms.reduce((acc, curr) => acc + (curr.n_participants_suported || 0), 0)
   }), [rooms]);
 
-  const handleRemoveRoom = async (id: number) => {
+  const handleRemoveRoom = async (id: string) => {
     if (!window.confirm('Tem certeza que deseja remover esta sala permanentemente?')) return;
     try {
       await removeRoom(id);
@@ -51,13 +44,11 @@ export default function Salas() {
 
     try {
       await addRoom({
-        nome: newRoom.name,
-        capacidade: parseInt(newRoom.capacity),
-        status: newRoom.status.toLowerCase(),
-        localizacao: newRoom.location || 'Miramar'
+        name: newRoom.name,
+        n_participants_suported: parseInt(newRoom.capacity)
       });
       setIsModalOpen(false);
-      setNewRoom({ name: '', capacity: '', location: '', status: 'disponível' });
+      setNewRoom({ name: '', capacity: '' });
     } catch (err) {
       console.error('Erro ao criar sala:', err);
       alert('Erro ao salvar sala no servidor.');
@@ -82,9 +73,8 @@ export default function Salas() {
             </Button>
           </div>
 
-          <div className="mb-10 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="mb-10 grid grid-cols-1 gap-4 md:grid-cols-2">
             <RoomStat label="Total de Salas" value={stats.total} icon={DoorOpen} iconWrapClass="bg-indigo-50 text-indigo-600" />
-            <RoomStat label="Disponíveis" value={stats.available} icon={CheckCircle2} iconWrapClass="bg-emerald-50 text-emerald-600" />
             <RoomStat label="Capacidade Total" value={`${stats.totalCapacity} lugares`} icon={Users} iconWrapClass="bg-blue-50 text-blue-600" />
           </div>
 
